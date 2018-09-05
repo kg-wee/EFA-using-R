@@ -130,7 +130,7 @@ The scree plot maps the factors with their eigenvalues and a cut-off point is de
 scree(olympic_cor)
 ```
 
-![](EFA_files/figure-markdown_github/unnamed-chunk-6-1.png)
+![](EFA_files/figure-markdown_github/scree.png)
 
 Keep in mind that one of the objectives in factor analysis is to reduce the large number of variables to a few interpretable latent variables (factors). We would like to find as few as factors to explain the maximum amount of variability in the data. Based on the plot, 2 or 3 factors appear to be sufficient. Again, it depends on our models and how we can interpret the factors.
 
@@ -223,7 +223,7 @@ We can plot the results of `fa()` to see the loadings of each variable on the fa
 fa.plot(factors_data_2, cut = 0.5)
 ```
 
-![](EFA_files/figure-markdown_github/unnamed-chunk-10-1.png)
+![](EFA_files/figure-markdown_github/fa_plot.png)
 
 We can also plot the result in a diagram in which the variables and factors are represented by nodes, and the loadings as edges.
 
@@ -231,7 +231,7 @@ We can also plot the result in a diagram in which the variables and factors are 
 fa.diagram(factors_data_2, cut = 0.5)
 ```
 
-![](EFA_files/figure-markdown_github/unnamed-chunk-11-1.png)
+![](EFA_files/figure-markdown_github/fa_diagram.png)
 
 It is clear that all the track events (`X400, X100, X110, X1500`) are positively associated with MR1, and most field events (`poid, disq, jave`) with MR2. Hence, we may model MR1 as speed and MR2 as strength.
 
