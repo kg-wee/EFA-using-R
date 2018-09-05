@@ -1,0 +1,110 @@
+---
+title: "A simple introduction to Exploratory Factor Analysis using R"
+author: "KG Wee"
+output: github_document
+urlcolor: blue
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+This document is about a simple introduction to exploratory factor analysis using R created in August 2018 for National University of Singapore Libraries (NUSL). Much of the content is inspired by the tutorials on [R-bloggers](https://www.r-bloggers.com/exploratory-factor-analysis-in-r/) and [University of Virginia Library](https://data.library.virginia.edu/getting-started-with-factor-analysis/). The data "Olympic" is from [ade4 package](https://pbil.univ-lyon1.fr/ade4/ade4-html/olympic.html).
+
+## Factor Analysis
+Factor analysis starts with the assumption of hidden latent variables which cannot be observed directly but are reflected in the answers or variables of the data. The number of latent variables are always less than the number of variables in the dataset. 
+
+### Factor Loadings
+Suppose we want to find out the factors that affect the performance of an athlete in decalthon. We might hypothesise that there are two factors, "strength" and "speed", neither of which is directly observed. We might want to know how much an event is determined by the two factors. For example, we may think that the average score of an athlete in the 100 metres event is `10 x Strength + 6 x Speed`. The numbers 10 and 6 are the factor loadings associated with the event.
+
+### Oblique rotations
+* Orthogonal (`Varimax` - in R): Factors are independent (i.e., correlations between factors are less than ~0.3)
+* Oblique (`Oblimin` - in R): Factors are related (i.e., at least some correlations between factors are greater than ~0.3).
+
+If the researcher hypothesises uncorrelated factors, then he or she can use orthogonal rotation. If the researcher hypothesises correlated factors, oblique rotation would be a better choice. By choosing a suitable rotation, the factors will be much easier to interpret and analyse.
+
+## Install necessary packages
+We are using `psych` package in R which is a package for personality, psychometric, and psychological research. It contains useful methods to do data analysis such as multivariate analysis, factor analysis and principal component analysis. We can install the packages in Rstudio for example by running:
+```{r eval = FALSE}
+install.packages("psych")
+install.packages("GPArotation")
+```
+
+We can include the packages by typing library("`XX`") where `XX` is the package name. Remember the quotation marks!
+```{r message = FALSE, warning = FALSE}
+library("psych")
+library("GPArotation")
+```
+
+The sample dataset should be in the same directory as this document.
+```{r}
+olympic_data <- read.csv("olympic.csv")
+olympic_data <- olympic_data[complete.cases(olympic_data), ]
+```
+
+How does the data look like?
+```{r echo = FALSE}
+olympic_data
+```
+
+It is a dataset that gives the performances of 33 men's decathlon at the Olympic Games (1988). It includes 33 rows and 10 columns events of the decathlon: 100 meters (X100), long jump (long), shotput (poid), high jump (haut), 400 meters (X400), 110-meter hurdles (X110), discus throw (disq), pole vault (perc), javelin (jave) and 1500 meters (X1500).
+
+In order to find out the factors, we need to know how well the variables are correlated to each other. We can use the correlations to predict relationships between two measurements, for example. In general, the presence of a correlation does not infer the presence of a causal relationship ("correlation does not imply causation").
+
+## Correlation matrix
+A correlation matrix is a table showing correlation coeffcients between sets of variables. 
+```{r}
+olympic_cor <- cor(olympic_data)
+olympic_cor
+```
+
+## Scree Plot
+The scree plot maps the factors with their eigenvalues and a cut-off point is determined wherever there is a sudden change in the slope of the line. The point where the slope levels off (the "elbow") indicates the number of factors that should be included in our analysis.
+```{r}
+scree(olympic_cor)
+```
+
+Keep in mind that one of the objectives in factor analysis is to reduce the large number of variables to a few interpretable latent variables (factors). We would like to find as few as factors to explain the maximum amount of variability in the data. Based on the plot, 2 or 3 factors appear to be sufficient. Again, it depends on our models and how we can interpret the factors.
+
+## Factor Analysis
+We are going to use a function called `fa()` in `psych` package to carry out exploratory factor analysis. It provides several methods to estimate the factor loadings with the "minimum residual method" as the default. Check out the documentation for more details.
+
+Let's run the analysis for both cases with 2 and 3 factors:
+```{r}
+factors_data_2 <- fa(r = olympic_cor, nfactors = 2, n.obs = 33)
+factors_data_3 <- fa(r = olympic_cor, nfactors = 3, n.obs = 33)
+```
+
+What does the result tell us? Let's look at the `factors_data_2`:
+```{r echo = FALSE}
+factors_data_2
+```
+
+That's a lot of output! In the first table, `MR1` and `MR2` refer to the factors, and the numbers are the loadings of each variable on each factor. We want groups of high numbers. For example, under MR1, we can see that `X100`, `X400` and `x110` (100 metres, 400 metres and 110-metre hurdles) have high loadings on MR1. Hence, we might be able to explain MR1 as "speed".
+
+`h2` refers to communality estimate, a measurement of the amount of variance in an observed variable explained by the factors. Usually we want a high communality so that the factors are sufficient to explain the variables. `u2` is called uniqueness, which tells us how much the variable does not fit into our model with the indicated factors.
+
+In the next table, we can see how much variance is contributed by the respective factors. 
+```{r echo = FALSE}
+factors_data_2$Vaccounted
+```
+
+We are interested in `cumulative variance` (the third row). The two-factor model can explained 53% of variance in the data, which is not bad. Usually, a good model should explain 50%-70% of variance. Of course, we can add more factors to see how much the number will increase.
+
+The `SS loadings` row is the sum of squared loadings. We say that a factor is worth keeping if the SS loading is greater than 1. It looks like our factors are good to go!
+
+## Visualisation of the result
+We can plot the results of `fa()` to see the loadings of each variable on the factors. The variables are assigned to clusters by their highest loading. The flag `Cut` is the cut-off point of the loadings.
+```{r}
+fa.plot(factors_data_2, cut = 0.5)
+```
+
+We can also plot the result in a diagram in which the variables and factors are represented by nodes, and the loadings as edges.
+```{r}
+fa.diagram(factors_data_2, cut = 0.5)
+```
+
+It is clear that all the track events (`X400, X100, X110, X1500`) are positively associated with MR1, and most field events (`poid, disq, jave`) with MR2. Hence, we may model MR1 as speed and MR2 as strength.
+
+Built with R `r getRversion()`
